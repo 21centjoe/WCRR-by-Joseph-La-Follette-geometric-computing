@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>White Cat Red Rose (WCRR) by Joseph La Follette</title>
+<link rel="stylesheet" href="css/nelos.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<header class="nelos-header">
+  <div class="nelos-brand">
+    <div class="dot"></div>
+    <span class="title">WCRR</span>
+    <span class="byline">by Joseph La Follette · geometric computing</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn primary" id="chooseStorageBtn" data-alt="Pick your USB drive or a dedicated folder for WCRR files. Never defaults anywhere automatically.">📁 Choose Storage Location</button>
+    <button class="btn" id="tutorialToggle" data-alt="Turns on persistent labels explaining every important control. Click again to turn off.">◎ Tutorial Mode: OFF</button>
+    <button class="btn gold" id="tourBtn" data-alt="A guided walkthrough of the real math this whole tool is built on.">◆ Genesis Tour</button>
+    <button class="btn" id="exportZipBtn" data-alt="Bundles every file currently loaded into one downloadable .zip.">⭳ Export All (.zip)</button>
+  </div>
+</header>
+
+<div class="security-banner" data-alt="This is always true, in tutorial mode or not — it's not a warning you can turn off.">
+  <b>Honest security note:</b> WCRR protects your data while it's sitting still — encrypted, self-healing, verified. It cannot protect data while it's being actively used on a computer you don't trust. Never enter a passphrase on a device you suspect is compromised.
+</div>
+
+<div class="nelos-workspace">
+
+  <!-- LEFT: directory / ingest / structure -->
+  <div class="nelos-panel sidebar">
+    <div class="panel-heading">Structure</div>
+    <div class="structure-mini" data-alt="A quick preview — open the Orbit tab for the full, interactive live graph.">
+      <span id="miniStructureStats">C60 outer · C20 core</span>
+      <button class="btn small" id="jumpToOrbitBtn" data-alt="Switches to the Orbit tab for the full-size, interactive version of this graph.">🪐 Open Orbit view</button>
+    </div>
+    <details class="how-it-works">
+      <summary>How this works</summary>
+      <p>Your file is split into pieces, one per vertex of a real 60-vertex fullerene graph (the same shape as a soccer ball / Buckminsterfullerene molecule). The 32 faces each store a backup value, so losing a piece can often be repaired from its neighbors — verified by checksum, never assumed.</p>
+    </details>
+
+    <div class="panel-heading">Add Files</div>
+    <div class="dropzone" id="dropZone" data-alt="Drop any file here, or a .wcrr / .wcrr.png vault to load it back.">Drop files or a .wcrr / .wcrr.png vault here</div>
+    <input type="file" id="fileInput" multiple>
+
+    <div class="panel-heading">Encode Selected</div>
+    <input type="password" id="encryptPassword" placeholder="optional passphrase (AES-256-GCM)" data-alt="Leave blank for no encryption. If you set one, remember it — it cannot be recovered if lost.">
+    <label style="font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:6px; margin-top:4px;">
+      <input type="checkbox" id="compressToggle" checked> gzip compress before sharding
+    </label>
+    <label style="font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:6px;">
+      <input type="checkbox" id="pngStegoToggle"> hide inside a real .wcrr.png image
+    </label>
+    <button class="btn primary" id="encodeSelectedBtn" style="margin-top:6px;" data-alt="Select a file in the Explorer first, then click this to protect it and download the result.">Encode → Download Vault</button>
+    <details class="how-it-works">
+      <summary>How this works</summary>
+      <p>Real AES-256-GCM encryption (the same standard used by full-disk encryption tools), real gzip compression, and the fullerene self-healing above — all three are independent, tested pieces, not decoration.</p>
+    </details>
+
+    <div class="panel-heading">USB / Folder Line</div>
+    <form id="usbPromptForm">
+      <input type="text" id="usbCommand" placeholder="mount · write &lt;name&gt; · list · help" data-alt="Type 'mount' to select a USB drive or folder, then 'write &lt;filename&gt;' to save a file there directly. Chrome/Edge/ChromeOS only.">
+    </form>
+    <details class="how-it-works">
+      <summary>How this works</summary>
+      <p>Uses your browser's real File System Access permission dialog — the same one Chrome uses for any site that asks to save files to a folder you choose. Nothing happens without you picking the folder yourself.</p>
+    </details>
+  </div>
+
+  <!-- CENTER: main stage, the biggest area -->
+  <div class="main-stage">
+    <div class="stage-tabs">
+      <div class="stage-tab active" data-view="orbit" data-alt="The real geometric structure your data actually shards across — drag to orbit, scroll to zoom.">🪐 Orbit</div>
+      <div class="stage-tab" data-view="explorer" data-alt="Every file you've loaded or created, with its real verification status.">Explorer</div>
+      <div class="stage-tab" data-view="media" data-alt="Preview images, audio, video, PDFs, and text — the main work area.">Preview</div>
+      <div class="stage-tab" data-view="applets" data-alt="Small, real, working demonstrations of individual pieces of WCRR.">Applets</div>
+      <div class="tab-visibility-toggles" data-alt="Hide tabs you don't need right now — they're not deleted, just out of the way.">
+        <label><input type="checkbox" class="tab-vis-cb" data-target="orbit" checked> Orbit</label>
+        <label><input type="checkbox" class="tab-vis-cb" data-target="explorer" checked> Explorer</label>
+        <label><input type="checkbox" class="tab-vis-cb" data-target="media" checked> Preview</label>
+        <label><input type="checkbox" class="tab-vis-cb" data-target="applets" checked> Applets</label>
+      </div>
+    </div>
+
+    <div class="stage-view active" id="view-orbit">
+      <div class="orbit-stage" data-alt="This is the actual C60/C20 graph your files are sharded across — not a separate illustration.">
+        <div id="orbitCanvas" style="width:100%; height:100%;"></div>
+        <div class="orbit-legend">
+          <div><span class="swatch teal"></span> C60 outer shell — <span id="orbitC60Stats">60 nodes</span></div>
+          <div><span class="swatch gold"></span> C20 core (manifest) — <span id="orbitC20Stats">20 nodes</span></div>
+        </div>
+      </div>
+      <p style="font-size:12px; color:var(--text-dim); margin-top:10px; max-width:640px;">
+        Drag to orbit, scroll to zoom. This is the same live graph object (<code>Nelos.GRAPH_C60</code> /
+        <code>Nelos.GRAPH_C20</code>) that the encoder shards your file across on the Explorer tab — not a
+        separate decorative model.
+      </p>
+    </div>
+
+    <div class="stage-view" id="view-explorer">
+      <table class="file-table">
+        <thead><tr><th>Name</th><th>Size</th><th>Type</th><th>Status</th><th></th></tr></thead>
+        <tbody id="fileTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="stage-view" id="view-media">
+      <div class="media-well" id="mediaWell" style="position:relative;"></div>
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <button class="btn" id="elaBtn" style="display:none;" data-alt="A real forensic heuristic (Error Level Analysis) — a signal worth noticing, not a verdict.">Run Tamper Heuristic (ELA)</button>
+        <button class="btn" id="selfHealBtn" data-alt="Re-checks every stored piece against its backup and repairs what it can.">Run Self-Heal Scan</button>
+        <button class="btn" id="openDefaultBtn" style="display:none;" data-alt="Downloads the file and lets your browser's own download bar open it in your computer's normal app for this file type.">Open in Default Player</button>
+      </div>
+    </div>
+
+    <div class="stage-view" id="view-applets">
+      <div class="panel-heading" style="margin-bottom:10px;">Trigger-Value Lookup — a real, working primitive</div>
+      <p style="font-size:12.5px; color:var(--text-dim); line-height:1.6; max-width:640px;">
+        This is a genuinely real, tested building block: a number selects a real stored value, and retrieving that
+        same number returns exactly what was stored — nothing simulated, nothing random standing in for data.
+        It's honestly a lookup table, not encryption or compression — worth knowing plainly rather than oversold.
+      </p>
+      <div class="applet-box">
+        <div class="row-input">
+          <label>trigger #</label>
+          <input type="number" id="triggerKeyInput" value="0" min="0" max="7" style="width:70px;">
+          <label>message</label>
+          <input type="text" id="triggerMsgInput" placeholder="type something real to store" style="flex:1;">
+          <button class="btn primary" id="triggerStoreBtn" data-alt="Actually writes this exact text into slot #, in real memory.">Store</button>
+          <button class="btn" id="triggerRetrieveBtn" data-alt="Actually reads back whatever was really stored at slot #.">Retrieve</button>
+        </div>
+        <div class="console-log" id="triggerLog" style="height:100px;"></div>
+      </div>
+
+      <div class="panel-heading" style="margin:20px 0 10px;">Geometric Calculator — real math on the real graph</div>
+      <p style="font-size:12.5px; color:var(--text-dim); line-height:1.6; max-width:640px;">
+        Every result below is computed live from the actual C60/C20 graph data used by the vault — the same
+        structure your files are really stored on, not a separate demo copy.
+      </p>
+      <div class="applet-box">
+        <div class="row-input">
+          <label>structure</label>
+          <select id="calcStructure" style="background:#0a0c10; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:7px;">
+            <option value="c60">C60 (60 nodes)</option>
+            <option value="c20">C20 (20 nodes)</option>
+          </select>
+          <label>node A</label>
+          <input type="number" id="calcNodeA" value="0" min="0" style="width:60px;">
+          <label>node B</label>
+          <input type="number" id="calcNodeB" value="10" min="0" style="width:60px;">
+          <button class="btn" id="calcHopsBtn" data-alt="Runs a real breadth-first search between these two nodes right now.">Hops Between A/B</button>
+        </div>
+        <div class="row-input">
+          <button class="btn" id="calcOverheadBtn" data-alt="Real parity-block count divided by real data-node count.">Redundancy Overhead %</button>
+          <button class="btn" id="calcDiameterBtn" data-alt="Computes the real worst-case hop distance across the whole graph, live.">Graph Diameter</button>
+        </div>
+        <div class="console-log" id="calcLog" style="height:100px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: telemetry -->
+  <div class="nelos-panel inspector">
+    <div class="panel-heading">System Log <span id="fileCount" style="color:var(--teal); font-weight:400;">0 files</span></div>
+    <div class="console-log" id="consoleLog"></div>
+    <details class="how-it-works" style="margin-top:6px;">
+      <summary>What's real in this build</summary>
+      <p>AES-256-GCM encryption, gzip compression, fullerene face-parity self-healing, real PNG steganography (confirmed
+      openable by an independent image library, not just this tool), and a real ZIP writer (confirmed against Python's
+      own zip library). Every one of these was tested with an actual pass/fail check before being included — not
+      assumed to work.</p>
+    </details>
+    <details class="how-it-works">
+      <summary>What's intentionally not included</summary>
+      <p>No sketchbook/drawing editor in this build — narrowed out earlier to keep the tool focused on storage and
+      self-healing. No true forensic-certainty tamper detection (doesn't exist as a solved problem — ELA is the honest,
+      scoped version). No claims about speed, computation, or capabilities beyond real file storage.</p>
+    </details>
+  </div>
+
+</div>
+
+<div class="status-bar" id="statusBar">Ready.</div>
+
+<!-- Genesis Tour overlay -->
+<div class="tour-overlay" id="tourOverlay">
+  <div class="tour-card">
+    <div class="tour-stage" id="tourStage"></div>
+    <div class="tour-title" id="tourTitle"></div>
+    <div class="tour-body" id="tourBody"></div>
+    <div class="tour-controls">
+      <div class="tour-dots" id="tourDots"></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="tourBackBtn">← Back</button>
+        <button class="btn primary" id="tourNextBtn">Next →</button>
+        <button class="btn" id="tourCloseBtn">Skip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/nelos-core.js"></script>
+<script src="js/nelos-ui.js"></script>
+<script src="js/nelos-viz.js"></script>
+<script src="js/nelos-applets.js"></script>
+</body>
+</html>
