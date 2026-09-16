@@ -296,7 +296,7 @@ document.getElementById('encodeSelectedBtn').onclick = async () => {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = finalName; a.click();
 
-  log(`Encoded ${App.activeEntry.name} -> ${finalName} (${finalBytes.length.toLocaleString()} bytes)${password ? ', encrypted' : ''}${useGzip ? ', compressed' : ''}${asPngToggle ? ', hidden in real PNG' : ''}.`);
+  log(`Encoded ${App.activeEntry.name} -> ${finalName} (${finalBytes.length.toLocaleString()} bytes)${password ? ', encrypted' : ''}${useGzip ? ', compressed' : ''}${asPngToggle ? ', hidden in real PNG cover' : ''}.`);
   setStatus('Vault created and downloaded.');
 };
 
@@ -384,8 +384,8 @@ async function runELA(imgEl, entry) {
     elaCanvas.style.maxWidth = '100%'; elaCanvas.style.maxHeight = '100%';
     well.appendChild(elaCanvas);
     const note = document.createElement('div');
-    note.style.cssText = 'position:absolute; bottom:8px; left:8px; right:8px; font-family:var(--mono); font-size:10px; color:var(--text-dim); background:rgba(3,4,5,0.85); padding:6px 10px; border-radius:6px;';
-    note.textContent = `ELA heuristic — max local difference ${maxDiff}. Bright regions show where recompression behaved differently; this can indicate editing, but also happens naturally at hard edges. Not a verdict.`;
+    note.style.cssText = 'position:absolute; bottom:8px; left:8px; right:8px; font-family:var(--mono); font-size:10px; color:var(--text-dim); background:rgba(3,4,5,0.85); padding:6px 10px; border:1px solid var(--border); border-radius:6px;';
+    note.textContent = `ELA heuristic — max local difference ${maxDiff}. Bright regions show where recompression behaved differently; this can indicate editing, but also happens naturally at high compression.`;
     document.getElementById('mediaWell').style.position = 'relative';
     well.appendChild(note);
     log(`ELA complete — max diff signal: ${maxDiff}. Reviewed as a heuristic, not proof.`);
@@ -453,27 +453,24 @@ document.getElementById('exportZipBtn').onclick = () => {
   log(`Exported ${App.entries.length} file(s) into nelos-export.zip.`);
 };
 
-const LICENSE_TEXT = `MIT License
+const LICENSE_TEXT = `GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
 
-Copyright (c) 2026 Joseph La Follette
+Copyright (C) 2026 Joseph La Follette
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.`;
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+`;
 
 renderExplorer();
 renderMedia(null);
